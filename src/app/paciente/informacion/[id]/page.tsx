@@ -2,12 +2,25 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { PacienteService } from "@/app/services/paciente.service";
+import Image from "next/image";
+import { RegistrarPacienteRequest } from "@/app/types";
 
 export default function InformacionPaciente() {
   const params = useParams();
   const id = params?.id as string;
   console.log("ID del paciente:", id);
-  const [paciente, setPaciente] = useState<any>(null);
+  const [paciente, setPaciente] = useState<RegistrarPacienteRequest>({
+    nombre: "",
+    apellido: "",
+    sexo: "",
+    peso: 0,
+    talla: 0,
+    edad: 0,
+    habitos_irregulares: false,
+    alimentos_ricos_hierro: false,
+    sintomas_fatiga_palidez: "",
+    imagen: "",
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,8 +33,20 @@ export default function InformacionPaciente() {
           tamano: 1,
         });
         setPaciente(res?.data?.[0] || null);
-      } catch (e) {
-        setPaciente(null);
+      } catch (error) {
+        setPaciente({
+          nombre: "",
+          apellido: "",
+          sexo: "",
+          peso: 0,
+          talla: 0,
+          edad: 0,
+          habitos_irregulares: false,
+          alimentos_ricos_hierro: false,
+          sintomas_fatiga_palidez: "",
+          imagen: "",
+        });
+        console.error("Error al obtener el paciente:", error);
       }
       setLoading(false);
     }
@@ -75,7 +100,7 @@ export default function InformacionPaciente() {
           <label>IMAGEN DEL PACIENTE</label>
           <div>
             {paciente.imagen ? (
-              <img
+              <Image
                 src={paciente.imagen}
                 alt="Paciente"
                 style={{

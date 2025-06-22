@@ -1,6 +1,7 @@
 "use client";
 import { PacienteService } from "@/app/services/paciente.service";
 import { RegistrarPacienteRequest } from "@/app/types";
+import Image from "next/image";
 import React, { useState } from "react";
 
 const sintomasList = [
@@ -9,7 +10,7 @@ const sintomasList = [
   { label: "Palidez", value: "palidez" },
 ];
 
-export const RegistrarPaciente: React.FC = () => {
+const RegistrarPaciente: React.FC = () => {
   const [form, setForm] = useState<RegistrarPacienteRequest>({
     nombre: "",
     apellido: "",
@@ -33,7 +34,8 @@ export const RegistrarPaciente: React.FC = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target as HTMLInputElement;
+    const checked = (e.target as HTMLInputElement).checked;
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -82,7 +84,7 @@ export const RegistrarPaciente: React.FC = () => {
     try {
       await PacienteService.registrarPaciente({
         ...form,
-        sintomas_fatiga_palidez: sintomas.join(","),
+        sintomas_fatiga_palidez: sintomas.length > 0,
       });
       alert("Paciente registrado correctamente");
       // Opcional: limpiar formulario
@@ -300,7 +302,7 @@ export const RegistrarPaciente: React.FC = () => {
         />
         {form.imagen && (
           <div className="mt-2">
-            <img
+            <Image
               src={form.imagen}
               alt="Paciente"
               style={{

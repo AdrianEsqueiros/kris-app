@@ -1,8 +1,9 @@
 "use client";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { PacienteService } from "@/app/services/paciente.service";
 import { RegistrarPacienteRequest } from "@/app/types";
 import Image from "next/image";
-import React, { useState } from "react";
 
 const sintomasList = [
   { label: "Fatiga", value: "fatiga" },
@@ -10,7 +11,11 @@ const sintomasList = [
   { label: "Palidez", value: "palidez" },
 ];
 
-const RegistrarPaciente: React.FC = () => {
+export default function ActualizarPaciente() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params?.id as string;
+
   const [form, setForm] = useState<RegistrarPacienteRequest>({
     nombre: "",
     apellido: "",
@@ -24,12 +29,61 @@ const RegistrarPaciente: React.FC = () => {
     imagen: "",
   });
   const [sintomas, setSintomas] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{
-    peso?: string;
-    talla?: string;
-    edad?: string;
-  }>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    async function fetchPaciente() {
+      setLoading(true);
+      try {
+        const res = await PacienteService.listarPacientes({
+          filtro: id,
+          pagina: 1,
+          tamano: 1,
+        });
+        const paciente = res?.data?.[0];
+        if (paciente) {
+          setForm({
+            id: paciente.id || undefined,
+            nombre: paciente.nombre || "",
+            apellido: paciente.apellido || "",
+            sexo: paciente.sexo || "",
+            peso: paciente.peso || 0,
+            talla: paciente.talla || 0,
+            edad: paciente.edad || 0,
+            habitos_irregulares:
+              paciente.habitos_irregulares === "True" ||
+              paciente.habitos_irregulares === true,
+            alimentos_ricos_hierro:
+              paciente.alimentos_ricos_hierro === "True" ||
+              paciente.alimentos_ricos_hierro === true,
+            sintomas_fatiga_palidez: paciente.sintomas_fatiga_palidez || "",
+            imagen: paciente.imagen || "",
+          });
+          // Si quieres marcar los checkboxes de síntomas según el string recibido:
+          if (
+            paciente.sintomas_fatiga_palidez &&
+            paciente.sintomas_fatiga_palidez !== "Ninguno"
+          ) {
+            // Suponiendo que puede venir como "fatiga,debilidad,palidez"
+            setSintomas(
+              paciente.sintomas_fatiga_palidez
+                .split(",")
+                .map((s: string) => s.trim())
+                .filter((s: string) => !!s)
+            );
+          } else {
+            setSintomas([]);
+          }
+        }
+      } catch (error) {
+        alert("Error al obtener datos del paciente");
+        console.error("Error al obtener el paciente:", error);
+      }
+      setLoading(false);
+    }
+    if (id) fetchPaciente();
+  }, [id]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -62,38 +116,24 @@ const RegistrarPaciente: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const validate = () => {
-    const newErrors: typeof errors = {};
-    if (form.peso < 2 || form.peso > 200) {
-      newErrors.peso = "El peso debe estar entre 2 y 200 kg.";
-    }
-    if (form.talla < 30 || form.talla > 250) {
-      newErrors.talla = "La talla debe estar entre 30 y 250 cm.";
-    }
-    if (form.edad < 0 || form.edad > 120) {
-      newErrors.edad = "La edad debe estar entre 0 y 120 años.";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
-    setLoading(true);
+    setSaving(true);
     try {
       await PacienteService.registrarPaciente({
         ...form,
       });
-      alert("Paciente registrado correctamente");
-      // Opcional: limpiar formulario
+      alert("Datos actualizados correctamente");
+      router.push(`/paciente/informacion/${id}`);
     } catch (error) {
-      alert("Error al registrar paciente");
-      console.error("Error al registrar paciente:", error);
+      alert("Error al actualizar datos");
+      console.log("Error al actualizar paciente:", error);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  if (loading) return <div>Cargando datos...</div>;
 
   return (
     <form
@@ -101,7 +141,7 @@ const RegistrarPaciente: React.FC = () => {
       className="container my-5 p-4 border rounded shadow bg-white"
       style={{ maxWidth: 900 }}
     >
-      <h2 className="text-center mb-4">REGISTRAR NUEVO PACIENTE</h2>
+      <h2 className="text-center mb-4">ACTUALIZAR DATOS DEL PACIENTE</h2>
       <div className="row mb-3">
         <div className="col-md-6">
           <label className="form-label">Nombre del paciente</label>
@@ -150,13 +190,8 @@ const RegistrarPaciente: React.FC = () => {
             min={2}
             max={200}
             step="any"
-            className={`form-control${errors.peso ? " is-invalid" : ""}`}
-            onInput={(e) => {
-              const input = e.target as HTMLInputElement;
-              if (input.value.length > 3) input.value = input.value.slice(0, 3);
-            }}
+            className="form-control"
           />
-          {errors.peso && <div className="invalid-feedback">{errors.peso}</div>}
         </div>
         <div className="col-md-3">
           <label className="form-label">Talla del paciente</label>
@@ -169,15 +204,8 @@ const RegistrarPaciente: React.FC = () => {
             min={30}
             max={250}
             step="any"
-            className={`form-control${errors.talla ? " is-invalid" : ""}`}
-            onInput={(e) => {
-              const input = e.target as HTMLInputElement;
-              if (input.value.length > 3) input.value = input.value.slice(0, 3);
-            }}
+            className="form-control"
           />
-          {errors.talla && (
-            <div className="invalid-feedback">{errors.talla}</div>
-          )}
         </div>
       </div>
       <div className="row mb-3">
@@ -191,13 +219,8 @@ const RegistrarPaciente: React.FC = () => {
             required
             min={0}
             max={120}
-            className={`form-control${errors.edad ? " is-invalid" : ""}`}
-            onInput={(e) => {
-              const input = e.target as HTMLInputElement;
-              if (input.value.length > 3) input.value = input.value.slice(0, 3);
-            }}
+            className="form-control"
           />
-          {errors.edad && <div className="invalid-feedback">{errors.edad}</div>}
         </div>
         <div className="col-md-4">
           <label className="form-label">
@@ -304,9 +327,9 @@ const RegistrarPaciente: React.FC = () => {
             <Image
               src={form.imagen}
               alt="Paciente"
+              width={100}
+              height={100}
               style={{
-                width: 100,
-                height: 100,
                 objectFit: "cover",
                 borderRadius: "50%",
               }}
@@ -318,12 +341,11 @@ const RegistrarPaciente: React.FC = () => {
         <button
           type="submit"
           className="btn btn-primary px-4"
-          disabled={loading}
+          disabled={saving}
         >
-          {loading ? "Guardando..." : "Guardar registro ahora"}
+          {saving ? "Guardando..." : "Actualizar datos"}
         </button>
       </div>
     </form>
   );
-};
-export default RegistrarPaciente;
+}

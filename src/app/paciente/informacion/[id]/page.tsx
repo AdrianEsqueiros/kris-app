@@ -57,67 +57,109 @@ export default function InformacionPaciente() {
   if (!paciente) return <div>No se encontró el paciente.</div>;
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
-      <h2 style={{ textAlign: "center", margin: "30px 0" }}>
-        INFORMACIÓN DEL PACIENTE
-      </h2>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
-        <div style={{ flex: 1 }}>
-          <label>NOMBRE DEL PACIENTE</label>
-          <input value={paciente.nombre || ""} disabled className="input" />
-          <label>SEXO DEL PACIENTE</label>
-          <input value={paciente.sexo || ""} disabled className="input" />
-          <label>TALLA DEL PACIENTE</label>
-          <input value={paciente.talla || ""} disabled className="input" />
-          <label>EDAD DEL PACIENTE</label>
-          <input value={paciente.edad || ""} disabled className="input" />
-          <label>¿PRESENTA HÁBITOS ALIMENTICIOS IRREGULARES?</label>
-          <input
-            value={paciente.habitos_irregulares ? "Sí" : "No"}
-            disabled
-            className="input"
-          />
+    <div className="container my-5">
+      <h2 className="text-center mb-4">INFORMACIÓN DEL PACIENTE</h2>
+      <div className="row g-4">
+        <div className="col-md-5">
+          <div className="mb-3">
+            <label className="form-label">NOMBRE DEL PACIENTE</label>
+            <input
+              value={paciente.nombre || ""}
+              disabled
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">SEXO DEL PACIENTE</label>
+            <input
+              value={paciente.sexo || ""}
+              disabled
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">TALLA DEL PACIENTE</label>
+            <input
+              value={paciente.talla || ""}
+              disabled
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">EDAD DEL PACIENTE</label>
+            <input
+              value={paciente.edad || ""}
+              disabled
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">
+              ¿PRESENTA HÁBITOS ALIMENTICIOS IRREGULARES?
+            </label>
+            <input
+              value={paciente.habitos_irregulares ? "Sí" : "No"}
+              disabled
+              className="form-control"
+            />
+          </div>
         </div>
-        <div style={{ flex: 1 }}>
-          <label>APELLIDO DEL PACIENTE</label>
-          <input value={paciente.apellido || ""} disabled className="input" />
-          <label>PESO DEL PACIENTE</label>
-          <input value={paciente.peso || ""} disabled className="input" />
-          <label>¿CONSUME ALIMENTOS RICOS EN HIERRO?</label>
-          <input
-            value={paciente.alimentos_ricos_hierro ? "Sí" : "No"}
-            disabled
-            className="input"
-          />
-          <label>¿PRESENTA SÍNTOMAS DE FATIGA O PALIDEZ?</label>
-          <input
-            value={paciente.sintomas_fatiga_palidez ? "Sí" : "No"}
-            disabled
-            className="input"
-          />
+        <div className="col-md-5">
+          <div className="mb-3">
+            <label className="form-label">APELLIDO DEL PACIENTE</label>
+            <input
+              value={paciente.apellido || ""}
+              disabled
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">PESO DEL PACIENTE</label>
+            <input
+              value={paciente.peso || ""}
+              disabled
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">
+              ¿CONSUME ALIMENTOS RICOS EN HIERRO?
+            </label>
+            <input
+              value={paciente.alimentos_ricos_hierro ? "Sí" : "No"}
+              disabled
+              className="form-control"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">
+              ¿PRESENTA SÍNTOMAS DE FATIGA O PALIDEZ?
+            </label>
+            <input
+              value={paciente.sintomas_fatiga_palidez ? "Sí" : "No"}
+              disabled
+              className="form-control"
+            />
+          </div>
         </div>
-        <div style={{ flex: "0 0 180px", textAlign: "center" }}>
-          <label>IMAGEN DEL PACIENTE</label>
+        <div className="col-md-2 d-flex flex-column align-items-center justify-content-center">
+          <label className="form-label mb-2">IMAGEN DEL PACIENTE</label>
           <div>
             {paciente.imagen ? (
               <Image
                 src={paciente.imagen}
                 alt="Paciente"
-                style={{
-                  width: 120,
-                  height: 120,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  background: "#eee",
-                }}
+                width={120}
+                height={120}
+                className="rounded-circle border bg-light"
+                style={{ objectFit: "cover" }}
               />
             ) : (
               <div
+                className="rounded-circle bg-light border"
                 style={{
                   width: 120,
                   height: 120,
-                  borderRadius: "50%",
-                  background: "#eee",
                   display: "inline-block",
                 }}
               />
@@ -125,14 +167,15 @@ export default function InformacionPaciente() {
           </div>
         </div>
       </div>
-      <div style={{ textAlign: "center", marginTop: 32 }}>
-        <button className="btn btn-primary" style={{ marginRight: 8 }}>
-          Actualizar Datos
+      <div className="text-center mt-4">
+        <button className="btn btn-primary me-2">Actualizar Datos</button>
+        <button className="btn btn-success me-2">Predecir anemia</button>
+        <button
+          className="btn btn-secondary"
+          onClick={() => (window.location.href = "/paciente/listar")}
+        >
+          Volver
         </button>
-        <button className="btn btn-success" style={{ marginRight: 8 }}>
-          Predecir anemia
-        </button>
-        <button className="btn btn-secondary">Volver</button>
       </div>
     </div>
   );

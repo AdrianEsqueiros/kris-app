@@ -84,7 +84,12 @@ export default function ListaPacientes() {
                 <td>{p.sexo}</td>
                 <td>{p.peso} kg</td>
                 <td>
-                  <button className="btn btn-info btn-sm me-2 text-white">
+                  <button
+                    className="btn btn-info btn-sm me-2 text-white"
+                    onClick={() =>
+                      (window.location.href = `/paciente/informacion/${p.id}`)
+                    }
+                  >
                     <i className="bi bi-eye"></i> Ver detalles
                   </button>
                   <button className="btn btn-success btn-sm me-2">

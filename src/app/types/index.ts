@@ -1,4 +1,5 @@
 export interface RegistrarPacienteRequest {
+  id?: number;
   nombre: string;
   apellido: string;
   sexo: string;

@@ -33,6 +33,7 @@ export interface ListarPacientesRequest {
 }
 
 export interface RegistrarPacienteRequest {
+  id?: number;
   nombre: string;
   apellido: string;
   sexo: string;
@@ -41,7 +42,7 @@ export interface RegistrarPacienteRequest {
   edad: number;
   habitos_irregulares: boolean;
   alimentos_ricos_hierro: boolean;
-  sintomas_fatiga_palidez: boolean;
+  sintomas_fatiga_palidez: string;
   imagen: string;
 }
 

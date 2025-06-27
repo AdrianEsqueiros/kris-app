@@ -2,12 +2,18 @@ export interface RegistrarPacienteRequest {
   id?: number;
   nombre: string;
   apellido: string;
-  sexo: string;
   peso: number;
   talla: number;
-  edad: number;
-  habitos_irregulares: boolean;
-  alimentos_ricos_hierro: boolean;
-  sintomas_fatiga_palidez: string;
-  imagen: string;
+  fecha_nacimiento: string;
+  EdadMeses: number;
+  AlturaREN: number;
+  Sexo: number;
+  Suplementacion: number;
+  Cred: number;
+  Tipo_EESS: string;
+  Red_simple: string;
+  Grupo_Edad: string;
+  Suppl_x_EdadGrupo: string;
+  Sexo_x_Juntos: string;
+  Indice_social: number;
 }

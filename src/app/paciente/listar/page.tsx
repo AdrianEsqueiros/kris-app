@@ -92,7 +92,12 @@ export default function ListaPacientes() {
                   >
                     <i className="bi bi-eye"></i> Ver detalles
                   </button>
-                  <button className="btn btn-success btn-sm me-2">
+                  <button
+                    className="btn btn-success btn-sm me-2"
+                    onClick={() =>
+                      (window.location.href = `/paciente/registrar/${p.id}`)
+                    }
+                  >
                     <i className="bi bi-pencil"></i> Actualizar
                   </button>
                   <button className="btn btn-danger btn-sm">

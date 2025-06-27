@@ -151,6 +151,7 @@ export default function ActualizarPaciente() {
             onChange={handleChange}
             required
             className="form-control"
+            disabled={!!id}
           />
         </div>
         <div className="col-md-6">
@@ -161,6 +162,7 @@ export default function ActualizarPaciente() {
             onChange={handleChange}
             required
             className="form-control"
+            disabled={!!id}
           />
         </div>
       </div>

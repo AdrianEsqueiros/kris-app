@@ -1,4 +1,5 @@
 import axios from "axios";
+import { RegistrarPacienteRequest } from "../types";
 
 // ListarPacientes
 // https://3gh2iixoag.execute-api.us-east-1.amazonaws.com/test/paciente/listar
@@ -30,20 +31,6 @@ export interface ListarPacientesRequest {
   filtro: string;
   pagina: number;
   tamano: number;
-}
-
-export interface RegistrarPacienteRequest {
-  id?: number;
-  nombre: string;
-  apellido: string;
-  sexo: string;
-  peso: number;
-  talla: number;
-  edad: number;
-  habitos_irregulares: boolean;
-  alimentos_ricos_hierro: boolean;
-  sintomas_fatiga_palidez: string;
-  imagen: string;
 }
 
 export class PacienteService {

@@ -1,29 +1,33 @@
 "use client";
 import { PacienteService } from "@/app/services/paciente.service";
 import { RegistrarPacienteRequest } from "@/app/types";
-import Image from "next/image";
 import React, { useState } from "react";
-
-const sintomasList = [
-  { label: "Fatiga", value: "fatiga" },
-  { label: "Debilidad", value: "debilidad" },
-  { label: "Palidez", value: "palidez" },
-];
+import { useRouter } from "next/navigation";
 
 const RegistrarPaciente: React.FC = () => {
+  const router = useRouter();
+  const [juntos, setJuntos] = useState(false);
+  const [sis, setSis] = useState(false);
+  const [qaliwarma, setQaliwarma] = useState(false);
   const [form, setForm] = useState<RegistrarPacienteRequest>({
     nombre: "",
     apellido: "",
-    sexo: "",
     peso: 0,
     talla: 0,
-    edad: 0,
-    habitos_irregulares: false,
-    alimentos_ricos_hierro: false,
-    sintomas_fatiga_palidez: "",
-    imagen: "",
+    fecha_nacimiento: "",
+    EdadMeses: 0,
+    AlturaREN: 0,
+    Sexo: 0,
+    Suplementacion: 0,
+    Cred: 0,
+    Tipo_EESS: "",
+    Red_simple: "",
+    Grupo_Edad: "",
+    Suppl_x_EdadGrupo: "",
+    Sexo_x_Juntos: "",
+    Indice_social: 0,
   });
-  const [sintomas, setSintomas] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
     peso?: string;
@@ -42,36 +46,13 @@ const RegistrarPaciente: React.FC = () => {
     }));
   };
 
-  const handleSintomas = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = e.target;
-    setSintomas((prev) =>
-      checked ? [...prev, value] : prev.filter((s) => s !== value)
-    );
-  };
-
-  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setForm((prev) => ({
-        ...prev,
-        imagen: reader.result as string,
-      }));
-    };
-    reader.readAsDataURL(file);
-  };
-
   const validate = () => {
     const newErrors: typeof errors = {};
-    if (form.peso < 2 || form.peso > 200) {
+    if (form.peso < 2 || form.peso > 250) {
       newErrors.peso = "El peso debe estar entre 2 y 200 kg.";
     }
     if (form.talla < 30 || form.talla > 250) {
       newErrors.talla = "La talla debe estar entre 30 y 250 cm.";
-    }
-    if (form.edad < 0 || form.edad > 120) {
-      newErrors.edad = "La edad debe estar entre 0 y 120 años.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -82,11 +63,46 @@ const RegistrarPaciente: React.FC = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      await PacienteService.registrarPaciente({
+      const payload = {
         ...form,
-      });
-      alert("Paciente registrado correctamente");
+        EdadMeses: Math.floor(
+          (new Date().getTime() - new Date(form.fecha_nacimiento).getTime()) /
+            (1000 * 60 * 60 * 24 * 30)
+        ),
+        Suppl_x_EdadGrupo: String(form.Suplementacion) + "_" + form.Grupo_Edad,
+        Sexo_x_Juntos: String(form.Sexo) + "_" + form.Indice_social,
+        // suma de juntos,sis,qaliwarma = Indice_social
+        Indice_social: (juntos ? 1 : 0) + (sis ? 1 : 0) + (qaliwarma ? 1 : 0),
+        Cred: form.Cred ? 1 : 0,
+        Suplementacion: form.Suplementacion ? 1 : 0,
+        Sexo: Number(form.Sexo) === 1 ? 1 : 0, // Convertir a 0 o 1
+      };
+      console.log("Payload to register patient:", payload);
+      // Registrar paciente
+      await PacienteService.registrarPaciente(payload);
+
       // Opcional: limpiar formulario
+      setForm({
+        nombre: "",
+        apellido: "",
+        peso: 0,
+        talla: 0,
+        fecha_nacimiento: "",
+        EdadMeses: 0,
+        AlturaREN: 0,
+        Sexo: 0,
+        Suplementacion: 0,
+        Cred: 0,
+        Tipo_EESS: "",
+        Red_simple: "",
+        Grupo_Edad: "",
+        Suppl_x_EdadGrupo: "",
+        Sexo_x_Juntos: "",
+        Indice_social: 0,
+      });
+
+      // redigirir a la lista de pacientes
+      router.push("/paciente/listar");
     } catch (error) {
       alert("Error al registrar paciente");
       console.error("Error al registrar paciente:", error);
@@ -103,44 +119,50 @@ const RegistrarPaciente: React.FC = () => {
     >
       <h2 className="text-center mb-4">REGISTRAR NUEVO PACIENTE</h2>
       <div className="row mb-3">
-        <div className="col-md-6">
-          <label className="form-label">Nombre del paciente</label>
+        <div className="col-md-6 mb-3 mb-md-0">
+          <label className="form-label fw-semibold">Nombre del paciente</label>
           <input
             name="nombre"
             value={form.nombre}
             onChange={handleChange}
             required
             className="form-control"
+            autoComplete="off"
+            placeholder="Ingrese nombre"
           />
         </div>
         <div className="col-md-6">
-          <label className="form-label">Apellido del paciente</label>
+          <label className="form-label fw-semibold">
+            Apellido del paciente
+          </label>
           <input
             name="apellido"
             value={form.apellido}
             onChange={handleChange}
             required
             className="form-control"
+            autoComplete="off"
+            placeholder="Ingrese apellido"
           />
         </div>
       </div>
       <div className="row mb-3">
-        <div className="col-md-6">
-          <label className="form-label">Sexo del paciente</label>
+        <div className="col-md-4 mb-3 mb-md-0">
+          <label className="form-label fw-semibold">Sexo</label>
           <select
-            name="sexo"
-            value={form.sexo}
+            name="Sexo"
+            value={form.Sexo}
             onChange={handleChange}
             required
             className="form-select"
           >
             <option value="">Seleccione</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Femenino">Femenino</option>
+            <option value="0">Femenino</option>
+            <option value="1">Masculino</option>
           </select>
         </div>
-        <div className="col-md-3">
-          <label className="form-label">Peso del paciente</label>
+        <div className="col-md-4 mb-3 mb-md-0">
+          <label className="form-label fw-semibold">Peso (kg)</label>
           <input
             name="peso"
             type="number"
@@ -148,18 +170,15 @@ const RegistrarPaciente: React.FC = () => {
             onChange={handleChange}
             required
             min={2}
-            max={200}
+            max={250}
             step="any"
             className={`form-control${errors.peso ? " is-invalid" : ""}`}
-            onInput={(e) => {
-              const input = e.target as HTMLInputElement;
-              if (input.value.length > 3) input.value = input.value.slice(0, 3);
-            }}
+            placeholder="Ej: 25.5"
           />
           {errors.peso && <div className="invalid-feedback">{errors.peso}</div>}
         </div>
-        <div className="col-md-3">
-          <label className="form-label">Talla del paciente</label>
+        <div className="col-md-4">
+          <label className="form-label fw-semibold">Talla (cm)</label>
           <input
             name="talla"
             type="number"
@@ -170,10 +189,7 @@ const RegistrarPaciente: React.FC = () => {
             max={250}
             step="any"
             className={`form-control${errors.talla ? " is-invalid" : ""}`}
-            onInput={(e) => {
-              const input = e.target as HTMLInputElement;
-              if (input.value.length > 3) input.value = input.value.slice(0, 3);
-            }}
+            placeholder="Ej: 110"
           />
           {errors.talla && (
             <div className="invalid-feedback">{errors.talla}</div>
@@ -182,137 +198,152 @@ const RegistrarPaciente: React.FC = () => {
       </div>
       <div className="row mb-3">
         <div className="col-md-4">
-          <label className="form-label">Edad del paciente</label>
+          <label className="form-label fw-semibold">Fecha de nacimiento</label>
           <input
-            name="edad"
-            type="number"
-            value={form.edad}
+            name="fecha_nacimiento"
+            type="date"
+            value={form.fecha_nacimiento}
             onChange={handleChange}
             required
-            min={0}
-            max={120}
-            className={`form-control${errors.edad ? " is-invalid" : ""}`}
-            onInput={(e) => {
-              const input = e.target as HTMLInputElement;
-              if (input.value.length > 3) input.value = input.value.slice(0, 3);
-            }}
+            className="form-control"
           />
-          {errors.edad && <div className="invalid-feedback">{errors.edad}</div>}
-        </div>
-        <div className="col-md-4">
-          <label className="form-label">
-            ¿El niño presenta hábitos alimenticios irregulares?
-          </label>
-          <div>
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="habitos_irregulares"
-                value="true"
-                checked={form.habitos_irregulares === true}
-                onChange={() =>
-                  setForm((f) => ({ ...f, habitos_irregulares: true }))
-                }
-              />
-              <label className="form-check-label">Sí</label>
-            </div>
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="habitos_irregulares"
-                value="false"
-                checked={form.habitos_irregulares === false}
-                onChange={() =>
-                  setForm((f) => ({ ...f, habitos_irregulares: false }))
-                }
-              />
-              <label className="form-check-label">No</label>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <label className="form-label">
-            ¿El niño consume alimentos ricos en hierro?
-          </label>
-          <div>
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="alimentos_ricos_hierro"
-                value="true"
-                checked={form.alimentos_ricos_hierro === true}
-                onChange={() =>
-                  setForm((f) => ({ ...f, alimentos_ricos_hierro: true }))
-                }
-              />
-              <label className="form-check-label">Sí</label>
-            </div>
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="alimentos_ricos_hierro"
-                value="false"
-                checked={form.alimentos_ricos_hierro === false}
-                onChange={() =>
-                  setForm((f) => ({ ...f, alimentos_ricos_hierro: false }))
-                }
-              />
-              <label className="form-check-label">No</label>
-            </div>
-          </div>
         </div>
       </div>
-      <div className="mb-3">
-        <label className="form-label">
-          ¿El niño muestra síntomas de fatiga, debilidad o palidez en la piel?
-        </label>
-        <div>
-          {sintomasList.map((s) => (
-            <div className="form-check form-check-inline" key={s.value}>
-              <input
-                className="form-check-input"
-                type="checkbox"
-                value={s.value}
-                checked={sintomas.includes(s.value)}
-                onChange={handleSintomas}
-                id={`sintoma-${s.value}`}
-              />
-              <label
-                className="form-check-label"
-                htmlFor={`sintoma-${s.value}`}
-              >
-                {s.label}
-              </label>
-            </div>
-          ))}
+      <div className="row mb-3">
+        <div className="col-md-4 mb-3 mb-md-0">
+          <label className="form-label fw-semibold">Altura REN</label>
+          <input
+            name="AlturaREN"
+            type="number"
+            value={form.AlturaREN}
+            onChange={handleChange}
+            min={0}
+            className="form-control"
+            placeholder="Ej: 150"
+          />
+        </div>
+        <div className="col-md-4 d-flex align-items-center">
+          <input
+            className="form-check-input me-2"
+            type="checkbox"
+            name="Suplementacion"
+            id="suplementacion"
+            checked={!!form.Suplementacion}
+            onChange={handleChange}
+          />
+          <label
+            className="form-check-label fw-semibold"
+            htmlFor="suplementacion"
+          >
+            Suplementación
+          </label>
         </div>
       </div>
-      <div className="mb-3">
-        <label className="form-label">Cargar imagen del paciente</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImage}
-          className="form-control"
-        />
-        {form.imagen && (
-          <div className="mt-2">
-            <Image
-              src={form.imagen}
-              alt="Paciente"
-              style={{
-                width: 100,
-                height: 100,
-                objectFit: "cover",
-                borderRadius: "50%",
-              }}
-            />
-          </div>
-        )}
+      <div className="row mb-3">
+        <div className="col-md-4 d-flex align-items-center mb-3 mb-md-0">
+          <input
+            className="form-check-input me-2"
+            type="checkbox"
+            name="Cred"
+            id="cred"
+            checked={!!form.Cred}
+            onChange={handleChange}
+          />
+          <label className="form-check-label fw-semibold" htmlFor="cred">
+            Control de Crecimiento y Desarrollo (Cred)
+          </label>
+        </div>
+        <div className="col-md-4 mb-3 mb-md-0">
+          <label className="form-label fw-semibold">Tipo EESS</label>
+          <select
+            name="Tipo_EESS"
+            value={form.Tipo_EESS}
+            onChange={handleChange}
+            className="form-select"
+            required
+          >
+            <option value="">Seleccione</option>
+            <option value="CentroSalud">CentroSalud</option>
+            <option value="Hospital">Hospital</option>
+            <option value="Posta">Posta</option>
+          </select>
+        </div>
+        <div className="col-md-4">
+          <label className="form-label fw-semibold">Red simple</label>
+          <select
+            name="Red_simple"
+            value={form.Red_simple}
+            onChange={handleChange}
+            className="form-select"
+            required
+          >
+            <option value="">Seleccione</option>
+            <option value="AREQUIPA">AREQUIPA</option>
+            <option value="CAMANA">CAMANA</option>
+            <option value="CASTILLA">CASTILLA</option>
+            <option value="ISLAY">ISLAY</option>
+            <option value="NO">NO</option>
+          </select>
+        </div>
+      </div>
+      <div className="row mb-3">
+        <div className="col-md-4">
+          <label className="form-label fw-semibold">Grupo Edad</label>
+          <select
+            name="Grupo_Edad"
+            value={form.Grupo_Edad}
+            onChange={handleChange}
+            className="form-select"
+            required
+          >
+            <option value="">Seleccione</option>
+            <option value="24-59m">24-59m</option>
+            <option value="6-24m">6-24m</option>
+            <option value="≥60m">≥60m</option>
+          </select>
+        </div>
+      </div>
+      <div className="row mb-3">
+        {/* Variable local para "Juntos" */}
+        <div className="col-md-4 d-flex align-items-center mb-2">
+          <input
+            className="form-check-input me-2"
+            type="checkbox"
+            name="Juntos"
+            id="juntos"
+            checked={!!juntos}
+            onChange={() => setJuntos((prev) => !prev)}
+          />
+          <label className="form-check-label fw-semibold" htmlFor="juntos">
+            Juntos
+          </label>
+        </div>
+        <div className="col-md-4 d-flex align-items-center mb-2">
+          <input
+            className="form-check-input me-2"
+            type="checkbox"
+            name="SIS"
+            id="sis"
+            checked={!!sis}
+            onChange={() => setSis((prev) => !prev)}
+          />
+          <label className="form-check-label fw-semibold" htmlFor="sis">
+            SIS
+          </label>
+        </div>
+        <div className="col-md-4 d-flex align-items-center mb-2">
+          <input
+            className="form-check-input me-2"
+            type="checkbox"
+            name="Qaliwarma"
+            id="qaliwarma"
+            checked={!!qaliwarma}
+            onChange={() => setQaliwarma((prev) => !prev)}
+          />
+          <label className="form-check-label fw-semibold" htmlFor="qaliwarma">
+            Qaliwarma
+          </label>
+        </div>
       </div>
       <div className="text-center mt-4">
         <button

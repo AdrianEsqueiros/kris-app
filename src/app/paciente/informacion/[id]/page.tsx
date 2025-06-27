@@ -2,26 +2,34 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { PacienteService } from "@/app/services/paciente.service";
-import Image from "next/image";
 import { RegistrarPacienteRequest } from "@/app/types";
-
 export default function InformacionPaciente() {
   const params = useParams();
   const id = params?.id as string;
-  console.log("ID del paciente:", id);
   const [paciente, setPaciente] = useState<RegistrarPacienteRequest>({
     nombre: "",
     apellido: "",
-    sexo: "",
     peso: 0,
     talla: 0,
-    edad: 0,
-    habitos_irregulares: false,
-    alimentos_ricos_hierro: false,
-    sintomas_fatiga_palidez: "",
-    imagen: "",
+    fecha_nacimiento: "",
+    EdadMeses: 0,
+    AlturaREN: 0,
+    Sexo: 0,
+    Suplementacion: 0,
+    Cred: 0,
+    Tipo_EESS: "",
+    Red_simple: "",
+    Grupo_Edad: "",
+    Suppl_x_EdadGrupo: "",
+    Sexo_x_Juntos: "",
+    Indice_social: 0,
   });
   const [loading, setLoading] = useState(true);
+  // Resultados de la predicción
+  const [prediccion, setPrediccion] = useState({
+    probabilidad_de_anemia: 0,
+    tiene_anemia: "",
+  });
 
   useEffect(() => {
     async function fetchPaciente() {
@@ -37,14 +45,20 @@ export default function InformacionPaciente() {
         setPaciente({
           nombre: "",
           apellido: "",
-          sexo: "",
           peso: 0,
           talla: 0,
-          edad: 0,
-          habitos_irregulares: false,
-          alimentos_ricos_hierro: false,
-          sintomas_fatiga_palidez: "",
-          imagen: "",
+          fecha_nacimiento: "",
+          EdadMeses: 0,
+          AlturaREN: 0,
+          Sexo: 0,
+          Suplementacion: 0,
+          Cred: 0,
+          Tipo_EESS: "",
+          Red_simple: "",
+          Grupo_Edad: "",
+          Suppl_x_EdadGrupo: "",
+          Sexo_x_Juntos: "",
+          Indice_social: 0,
         });
         console.error("Error al obtener el paciente:", error);
       }
@@ -52,130 +66,142 @@ export default function InformacionPaciente() {
     }
     if (id) fetchPaciente();
   }, [id]);
-
+  console.log("Paciente:", paciente);
   if (loading) return <div>Cargando...</div>;
   if (!paciente) return <div>No se encontró el paciente.</div>;
 
+  {
+    /* consultar servicio de prediccion */
+  }
+  const handlePredecirAnemia = async () => {
+    try {
+      const res = await PacienteService.predecirAnemia({
+        EdadMeses: paciente.EdadMeses,
+        AlturaREN: paciente.AlturaREN,
+        Sexo: String(paciente.Sexo) === "Masculino" ? 1 : 0, // Convertir M/F a 1/0
+        Suplementacion: paciente.Suplementacion,
+        Cred: paciente.Cred,
+        Tipo_EESS: paciente.Tipo_EESS,
+        Red_simple: paciente.Red_simple,
+        Grupo_Edad: paciente.Grupo_Edad,
+        Suppl_x_EdadGrupo: paciente.Suppl_x_EdadGrupo,
+        Sexo_x_Juntos: paciente.Sexo_x_Juntos,
+        Indice_social: paciente.Indice_social,
+      });
+      console.log("Predicción de anemia:", res);
+      setPrediccion(res);
+    } catch (error) {
+      console.error("Error al predecir anemia:", error);
+    }
+  };
+  console.log("Predicción:", prediccion);
   return (
     <div className="container my-5">
       <h2 className="text-center mb-4">INFORMACIÓN DEL PACIENTE</h2>
       <div className="row g-4">
         <div className="col-md-5">
           <div className="mb-3">
-            <label className="form-label">NOMBRE DEL PACIENTE</label>
-            <input
-              value={paciente.nombre || ""}
-              disabled
-              className="form-control"
-            />
+            <label className="form-label">NOMBRE</label>
+            <input value={paciente?.nombre} disabled className="form-control" />
           </div>
           <div className="mb-3">
-            <label className="form-label">SEXO DEL PACIENTE</label>
-            <input
-              value={paciente.sexo || ""}
-              disabled
-              className="form-control"
-            />
+            <label className="form-label">SEXO</label>
+            <input value={paciente?.sexo} disabled className="form-control" />
           </div>
           <div className="mb-3">
-            <label className="form-label">TALLA DEL PACIENTE</label>
-            <input
-              value={paciente.talla || ""}
-              disabled
-              className="form-control"
-            />
+            <label className="form-label">TALLA</label>
+            <input value={paciente?.talla} disabled className="form-control" />
           </div>
           <div className="mb-3">
-            <label className="form-label">EDAD DEL PACIENTE</label>
-            <input
-              value={paciente.edad || ""}
-              disabled
-              className="form-control"
-            />
+            <label className="form-label">EDAD</label>
+            <input value={paciente?.edad} disabled className="form-control" />
           </div>
           <div className="mb-3">
-            <label className="form-label">
-              ¿PRESENTA HÁBITOS ALIMENTICIOS IRREGULARES?
-            </label>
+            <label className="form-label">FECHA DE NACIMIENTO</label>
             <input
-              value={paciente.habitos_irregulares ? "Sí" : "No"}
+              value={new Date(paciente?.fecha_nacimiento).toLocaleDateString()}
               disabled
               className="form-control"
             />
           </div>
         </div>
+
         <div className="col-md-5">
           <div className="mb-3">
-            <label className="form-label">APELLIDO DEL PACIENTE</label>
+            <label className="form-label">APELLIDO</label>
             <input
-              value={paciente.apellido || ""}
+              value={paciente?.apellido}
               disabled
               className="form-control"
             />
           </div>
           <div className="mb-3">
-            <label className="form-label">PESO DEL PACIENTE</label>
+            <label className="form-label">PESO</label>
+            <input value={paciente?.peso} disabled className="form-control" />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">EDAD EN MESES</label>
             <input
-              value={paciente.peso || ""}
+              value={paciente?.EdadMeses}
               disabled
               className="form-control"
             />
           </div>
           <div className="mb-3">
-            <label className="form-label">
-              ¿CONSUME ALIMENTOS RICOS EN HIERRO?
-            </label>
+            <label className="form-label">ALTURA REN</label>
             <input
-              value={paciente.alimentos_ricos_hierro ? "Sí" : "No"}
+              value={paciente?.AlturaREN}
               disabled
               className="form-control"
             />
           </div>
           <div className="mb-3">
-            <label className="form-label">
-              ¿PRESENTA SÍNTOMAS DE FATIGA O PALIDEZ?
-            </label>
+            <label className="form-label">TIPO EESS</label>
             <input
-              value={paciente.sintomas_fatiga_palidez ? "Sí" : "No"}
+              value={paciente?.Tipo_EESS}
               disabled
               className="form-control"
             />
-          </div>
-        </div>
-        <div className="col-md-2 d-flex flex-column align-items-center justify-content-center">
-          <label className="form-label mb-2">IMAGEN DEL PACIENTE</label>
-          <div>
-            {paciente.imagen ? (
-              <Image
-                src={paciente.imagen}
-                alt="Paciente"
-                width={120}
-                height={120}
-                className="rounded-circle border bg-light"
-                style={{ objectFit: "cover" }}
-              />
-            ) : (
-              <div
-                className="rounded-circle bg-light border"
-                style={{
-                  width: 120,
-                  height: 120,
-                  display: "inline-block",
-                }}
-              />
-            )}
           </div>
         </div>
       </div>
+
       <div className="text-center mt-4">
-        <button className="btn btn-primary me-2">Actualizar Datos</button>
-        <button className="btn btn-success me-2">Predecir anemia</button>
+        {/* buton enviar a paciente/registrar/[id] */}
+        <button
+          className="btn btn-info me-2"
+          onClick={() =>
+            (window.location.href = `/paciente/registrar/${paciente.id}`)
+          }
+        >
+          Actualizar Datos
+        </button>
+        {/* consultar servicio de prediccion */}
+
+        <button className="btn btn-success me-2" onClick={handlePredecirAnemia}>
+          Predecir anemia
+        </button>
         <button
           className="btn btn-secondary"
           onClick={() => (window.location.href = "/paciente/listar")}
         >
           Volver
         </button>
+      </div>
+
+      {/* Resultados de la predicción en dona prediccion.probabilidad_de_anemia": 0.8184 */}
+      <div className="mt-4">
+        <h4>Probabilidad de Anemia</h4>
+        {prediccion ? (
+          <span>{prediccion.probabilidad_de_anemia}</span>
+        ) : (
+          <span>No se ha realizado la predicción.</span>
+        )}
+      </div>
+
+      <div className="mt-4">
+        <h4>Resultados de la Predicción</h4>
+        <span>{JSON.stringify(prediccion, null, 2)}</span>
       </div>
     </div>
   );

@@ -4,10 +4,12 @@ export interface RegistrarPacienteRequest {
   apellido: string;
   peso: number;
   talla: number;
+  edad?: number;
   fecha_nacimiento: string;
   EdadMeses: number;
   AlturaREN: number;
   Sexo: number;
+  sexo?: string; // M o F
   Suplementacion: number;
   Cred: number;
   Tipo_EESS: string;

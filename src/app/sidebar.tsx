@@ -13,7 +13,7 @@ const sidebarItems = [
   {
     label: "Información del paciente",
     iconClass: "bi bi-person-fill-gear",
-    path: "/paciente/informacion",
+    path: "/paciente/listar",
   },
   {
     label: "Resultados de Predicción",

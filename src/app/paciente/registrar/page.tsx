@@ -69,7 +69,7 @@ const RegistrarPaciente: React.FC = () => {
           (new Date().getTime() - new Date(form.fecha_nacimiento).getTime()) /
             (1000 * 60 * 60 * 24 * 30)
         ),
-        Suppl_x_EdadGrupo: String(form.Suplementacion) + "_" + form.Grupo_Edad,
+        Suppl_x_EdadGrupo: Number(form.Suplementacion) + "_" + form.Grupo_Edad,
         Sexo_x_Juntos: String(form.Sexo) + "_" + form.Indice_social,
         // suma de juntos,sis,qaliwarma = Indice_social
         Indice_social: (juntos ? 1 : 0) + (sis ? 1 : 0) + (qaliwarma ? 1 : 0),

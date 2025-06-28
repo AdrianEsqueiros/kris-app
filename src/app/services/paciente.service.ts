@@ -26,7 +26,7 @@ import { RegistrarPacienteRequest } from "../types";
 
 const BASE_URL =
   "https://3gh2iixoag.execute-api.us-east-1.amazonaws.com/test/paciente";
-const PY_URL = "http://44.203.37.134:5000/predict";
+const PY_URL = "https://healthcarekris.duckdns.org/predict";
 
 export interface ListarPacientesRequest {
   filtro: string;

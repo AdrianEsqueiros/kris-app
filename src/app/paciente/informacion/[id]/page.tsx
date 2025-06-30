@@ -37,6 +37,7 @@ export default function InformacionPaciente() {
     probabilidad_de_anemia: 0,
     tiene_anemia: "",
   });
+  const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
     async function fetchPaciente() {
@@ -79,12 +80,12 @@ export default function InformacionPaciente() {
   {
     /* consultar servicio de prediccion */
   }
-  const handlePredecirAnemia = async () => {
+  const handlePredecirAnemia = async (mostrarMensaje = false) => {
     try {
       const res = await PacienteService.predecirAnemia({
         EdadMeses: paciente.EdadMeses,
         AlturaREN: paciente.AlturaREN,
-        Sexo: String(paciente.Sexo) === "Masculino" ? 1 : 0, // Convertir M/F a 1/0
+        Sexo: String(paciente.Sexo) === "Masculino" ? 1 : 0,
         Suplementacion: paciente.Suplementacion,
         Cred: paciente.Cred,
         Tipo_EESS: paciente.Tipo_EESS,
@@ -94,16 +95,22 @@ export default function InformacionPaciente() {
         Sexo_x_Juntos: paciente.Sexo_x_Juntos,
         Indice_social: paciente.Indice_social,
       });
-      console.log("Predicción de anemia:", res);
       setPrediccion(res);
+
+      if (mostrarMensaje) {
+        setMensaje(
+          "Se registró la predicción de los datos clínicos correctamente."
+        );
+      }
     } catch (error) {
       console.error("Error al predecir anemia:", error);
     }
   };
+
   console.log("Predicción:", prediccion);
   return (
     <div className="container my-5">
-      <h2 className="text-center mb-4">INFORMACIÓN DEL PACIENTE</h2>
+      <h2 className="text-center mb-4">MODULO DE PREDICCIÓN</h2>
       <div className="row g-4">
         <div className="col-md-5">
           <div className="mb-3">
@@ -188,9 +195,20 @@ export default function InformacionPaciente() {
         </button>
         {/* consultar servicio de prediccion */}
 
-        <button className="btn btn-success me-2" onClick={handlePredecirAnemia}>
-          Predecir anemia
+        <button
+          className="btn btn-success me-2"
+          onClick={() => handlePredecirAnemia()}
+        >
+          Predicción de Anemia
         </button>
+
+        <button
+          className="btn btn-warning me-2"
+          onClick={() => handlePredecirAnemia(true)}
+        >
+          Registro Clínico
+        </button>
+
         <button
           className="btn btn-secondary"
           onClick={() => (window.location.href = "/paciente/listar")}
@@ -202,95 +220,107 @@ export default function InformacionPaciente() {
       <div className="mt-5">
         <h4 className="text-center mb-4">Probabilidad de Anemia</h4>
         {prediccion.probabilidad_de_anemia ? (
-          <div className="d-flex flex-column flex-md-row align-items-center justify-content-center gap-4">
-            {/* Gráfico tipo dona */}
-            <div style={{ width: "250px" }}>
-              <Doughnut
-                data={{
-                  labels: ["Anemia", "Sin anemia"],
-                  datasets: [
-                    {
-                      data: [
-                        prediccion.probabilidad_de_anemia * 100,
-                        100 - prediccion.probabilidad_de_anemia * 100,
-                      ],
-                      backgroundColor: ["#ef4444", "#10b981"],
-                      borderColor: ["#fca5a5", "#6ee7b7"],
-                      borderWidth: 2,
-                    },
-                  ],
-                }}
-                options={{
-                  cutout: "70%",
-                  plugins: {
-                    legend: {
-                      display: false,
-                    },
-                    tooltip: {
-                      callbacks: {
-                        label: function (context) {
-                          return `${context.label}: ${context.parsed.toFixed(
-                            1
-                          )}%`;
+          <>
+            <div className="d-flex flex-column flex-md-row align-items-center justify-content-center gap-4">
+              {/* Gráfico tipo dona */}
+              <div style={{ width: "250px" }}>
+                <Doughnut
+                  data={{
+                    labels: ["Anemia", "Sin anemia"],
+                    datasets: [
+                      {
+                        data: [
+                          prediccion.probabilidad_de_anemia * 100,
+                          100 - prediccion.probabilidad_de_anemia * 100,
+                        ],
+                        backgroundColor: ["#ef4444", "#10b981"],
+                        borderColor: ["#fca5a5", "#6ee7b7"],
+                        borderWidth: 2,
+                      },
+                    ],
+                  }}
+                  options={{
+                    cutout: "70%",
+                    plugins: {
+                      legend: {
+                        display: false,
+                      },
+                      tooltip: {
+                        callbacks: {
+                          label: function (context) {
+                            return `${context.label}: ${context.parsed.toFixed(
+                              1
+                            )}%`;
+                          },
                         },
                       },
                     },
-                  },
-                }}
-              />
-            </div>
+                  }}
+                />
+              </div>
 
-            {/* Leyenda y texto de resultado */}
-            <div className="text-start">
-              <h5 className="mb-3">
-                Tiene anemia:{" "}
-                <span
-                  className={
-                    prediccion.tiene_anemia === "Sí"
-                      ? "text-danger fw-bold"
-                      : "text-success fw-bold"
-                  }
-                >
-                  {prediccion.tiene_anemia === "Sí" ? "Sí" : "No"}
-                </span>
-              </h5>
-              <ul className="list-unstyled">
-                <li className="mb-2 d-flex align-items-center">
+              {/* Leyenda y texto de resultado */}
+              <div className="text-start">
+                <h5 className="mb-3">
+                  Tiene anemia:{" "}
                   <span
-                    style={{
-                      width: "15px",
-                      height: "15px",
-                      backgroundColor: "#ef4444",
-                      display: "inline-block",
-                      marginRight: "8px",
-                      borderRadius: "3px",
-                    }}
-                  ></span>
-                  Anemia:{" "}
-                  <strong className="ms-1">
-                    {(prediccion.probabilidad_de_anemia * 100).toFixed(1)}%
-                  </strong>
-                </li>
-                <li className="d-flex align-items-center">
-                  <span
-                    style={{
-                      width: "15px",
-                      height: "15px",
-                      backgroundColor: "#10b981",
-                      display: "inline-block",
-                      marginRight: "8px",
-                      borderRadius: "3px",
-                    }}
-                  ></span>
-                  Sin anemia:{" "}
-                  <strong className="ms-1">
-                    {(100 - prediccion.probabilidad_de_anemia * 100).toFixed(1)}
-                    %
-                  </strong>
-                </li>
-              </ul>
+                    className={
+                      prediccion.tiene_anemia === "Sí"
+                        ? "text-danger fw-bold"
+                        : "text-success fw-bold"
+                    }
+                  >
+                    {prediccion.tiene_anemia === "Sí" ? "Sí" : "No"}
+                  </span>
+                </h5>
+                <ul className="list-unstyled">
+                  <li className="mb-2 d-flex align-items-center">
+                    <span
+                      style={{
+                        width: "15px",
+                        height: "15px",
+                        backgroundColor: "#ef4444",
+                        display: "inline-block",
+                        marginRight: "8px",
+                        borderRadius: "3px",
+                      }}
+                    ></span>
+                    Anemia:{" "}
+                    <strong className="ms-1">
+                      {(prediccion.probabilidad_de_anemia * 100).toFixed(1)}%
+                    </strong>
+                  </li>
+                  <li className="d-flex align-items-center">
+                    <span
+                      style={{
+                        width: "15px",
+                        height: "15px",
+                        backgroundColor: "#10b981",
+                        display: "inline-block",
+                        marginRight: "8px",
+                        borderRadius: "3px",
+                      }}
+                    ></span>
+                    Sin anemia:{" "}
+                    <strong className="ms-1">
+                      {(100 - prediccion.probabilidad_de_anemia * 100).toFixed(
+                        1
+                      )}
+                      %
+                    </strong>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
+            {mensaje && (
+              <div
+                className="alert alert-success text-center mt-3"
+                role="alert"
+              >
+                {mensaje}
+              </div>
+            )}
+          </>
         ) : (
           <p className="text-muted text-center">
             No se ha realizado la predicción.

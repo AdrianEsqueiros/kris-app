@@ -114,7 +114,7 @@ export default function ListaPacientes() {
                       (window.location.href = `/paciente/informacion/${p.id}`)
                     }
                   >
-                    <i className="bi bi-eye"></i> Ver detalles
+                    <i className="bi bi-eye"></i> Predicir
                   </button>
                   <button
                     className="btn btn-success btn-sm me-2"

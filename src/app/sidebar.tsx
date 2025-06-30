@@ -10,17 +10,17 @@ const sidebarItems = [
     iconClass: "bi bi-person-bounding-box",
     path: "/paciente/registrar",
   },
-
-  // {
-  //   label: "Resultados de Predicción",
-  //   iconClass: "bi bi-bar-chart-line-fill",
-  //   path: "/resultados",
-  // },
   {
     label: "Lista de Pacientes",
     iconClass: "bi bi-person-lines-fill",
     path: "/paciente/listar",
   },
+  {
+    label: "Modulo de Predicción",
+    iconClass: "bi bi-bar-chart-line-fill",
+    path: "/paciente/informacion",
+  },
+
   {
     label: "Lista de Usuarios",
     iconClass: "bi bi-person-lines-fill",
@@ -58,33 +58,29 @@ export default function Sidebar() {
           <nav>
             <ul className="list-none p-0 m-0">
               {sidebarItems.map((item) => {
-                const isActive = pathname === item.path;
+                const isActive = pathname.startsWith(item.path);
                 return (
                   <li key={item.path} className="mb-2 last:mb-0">
                     <Link
                       href={item.path ?? ""}
                       className={`flex items-center gap-3 px-4 py-2 rounded-md transition-colors w-full text-left no-underline
-                    ${
-                      isActive
-                        ? "bg-[#E6F4EA] text-[#22C55E] font-semibold "
-                        : "hover:bg-gray-100 text-[#6B7280]"
-                    }
-                  `}
+          ${
+            isActive
+              ? "bg-[#E6F4EA] text-[#22C55E] font-semibold "
+              : "hover:bg-gray-100 text-[#6B7280]"
+          }
+        `}
                       style={
                         isActive
                           ? {
                               backgroundColor: "#E6F4EA",
                               color: "#22C55E",
                               fontWeight: "600",
-                              fontFamily: "inherit",
-                              fontSize: "inherit",
                             }
                           : {
                               backgroundColor: "transparent",
                               color: "#6B7280",
                               fontWeight: "400",
-                              fontFamily: "inherit",
-                              fontSize: "inherit",
                             }
                       }
                     >

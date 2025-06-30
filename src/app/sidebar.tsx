@@ -11,11 +11,11 @@ const sidebarItems = [
     path: "/paciente/registrar",
   },
 
-  {
-    label: "Resultados de Predicción",
-    iconClass: "bi bi-bar-chart-line-fill",
-    path: "/resultados",
-  },
+  // {
+  //   label: "Resultados de Predicción",
+  //   iconClass: "bi bi-bar-chart-line-fill",
+  //   path: "/resultados",
+  // },
   {
     label: "Lista de Pacientes",
     iconClass: "bi bi-person-lines-fill",

@@ -13,7 +13,7 @@ export default function NotFound() {
     } else {
       router.push("/paciente/listar"); // o la ruta principal si el usuario está logueado
     }
-  }, []);
+  }, [router]);
 
   return (
     <div className=" h-screen flex items-center justify-center bg-gray-100 ">

@@ -11,5 +11,5 @@ export function useAuthRedirect() {
     if (!token) {
       router.push("/login");
     }
-  }, []);
+  }, [router]);
 }

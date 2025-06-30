@@ -81,7 +81,7 @@ export default function ActualizarPaciente() {
     }
 
     if (id) fetchPaciente();
-  });
+  }, [id]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

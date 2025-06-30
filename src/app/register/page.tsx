@@ -4,6 +4,7 @@ import PasswordInput from "./components/passwordInput";
 
 export default function RegisterForm() {
   const [step, setStep] = useState<"register" | "confirm">("register");
+  const [loading, setLoading] = useState(false); // Spinner 👈
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -18,6 +19,7 @@ export default function RegisterForm() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true); // ⏳ Inicia spinner
 
     const res = await fetch("/api/signup", {
       method: "POST",
@@ -37,10 +39,13 @@ export default function RegisterForm() {
     } else {
       alert("Error: " + data.message);
     }
+
+    setLoading(false); // ✅ Finaliza spinner
   };
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true); // ⏳ Inicia spinner
 
     const res = await fetch("/api/confirm", {
       method: "POST",
@@ -54,7 +59,6 @@ export default function RegisterForm() {
     const data = await res.json();
 
     if (res.ok) {
-      // ✅ Llamada a tu API interna para guardar el usuario en tu BD
       const dbRes = await fetch("/api/register-db", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,6 +84,8 @@ export default function RegisterForm() {
     } else {
       alert("Error: " + data.message);
     }
+
+    setLoading(false); // ✅ Finaliza spinner
   };
 
   return (
@@ -146,10 +152,24 @@ export default function RegisterForm() {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded flex items-center justify-center gap-2"
+              disabled={loading}
+              className={`w-full text-white py-2 px-4 rounded flex items-center justify-center gap-2 ${
+                loading
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              Crear cuenta
-              <i className="bi bi-arrow-right-circle" />
+              {loading ? (
+                <>
+                  <i className="bi bi-arrow-repeat animate-spin" />
+                  Registrando...
+                </>
+              ) : (
+                <>
+                  Crear cuenta
+                  <i className="bi bi-arrow-right-circle" />
+                </>
+              )}
             </button>
           </form>
         ) : (
@@ -172,10 +192,24 @@ export default function RegisterForm() {
 
             <button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded flex items-center justify-center gap-2"
+              disabled={loading}
+              className={`w-full text-white py-2 px-4 rounded flex items-center justify-center gap-2 ${
+                loading
+                  ? "bg-green-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
             >
-              Confirmar cuenta
-              <i className="bi bi-check-circle" />
+              {loading ? (
+                <>
+                  <i className="bi bi-arrow-repeat animate-spin" />
+                  Confirmando...
+                </>
+              ) : (
+                <>
+                  Confirmar cuenta
+                  <i className="bi bi-check-circle" />
+                </>
+              )}
             </button>
           </form>
         )}

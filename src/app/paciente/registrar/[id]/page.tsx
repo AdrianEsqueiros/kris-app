@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { PacienteService } from "@/app/services/paciente.service";
 import { RegistrarPacienteRequest } from "@/app/types";
+import Spinner from "@/app/components/spinner";
 
 export default function ActualizarPaciente() {
   const params = useParams();
@@ -129,7 +130,7 @@ export default function ActualizarPaciente() {
     }
   };
 
-  if (loading) return <div className="text-center mt-5">Cargando datos...</div>;
+  if (loading) return <Spinner />;
 
   return (
     <form

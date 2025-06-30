@@ -6,6 +6,7 @@ import { RegistrarPacienteRequest } from "@/app/types";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
+import Spinner from "@/app/components/spinner";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -74,7 +75,7 @@ export default function InformacionPaciente() {
     }
     if (id) fetchPaciente();
   }, [id]);
-  if (loading) return <div>Cargando...</div>;
+  if (loading) return <Spinner />;
   if (!paciente) return <div>No se encontró el paciente.</div>;
 
   {

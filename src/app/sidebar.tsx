@@ -26,11 +26,11 @@ const sidebarItems = [
     iconClass: "bi bi-person-lines-fill",
     path: "/usuarios",
   },
-  {
-    label: "Mi Perfil",
-    iconClass: "bi bi-person-fill-gear",
-    path: "/perfil",
-  },
+  // {
+  //   label: "Mi Perfil",
+  //   iconClass: "bi bi-person-fill-gear",
+  //   path: "/perfil",
+  // },
   {
     label: "Salir",
     iconClass: "bi bi-lock",

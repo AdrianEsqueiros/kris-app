@@ -1,10 +1,8 @@
 "use client";
 import { useState } from "react";
 import PasswordInput from "./components/passwordInput";
-import { useAuthRedirect } from "../hooks/useAuthRedirect";
 
 export default function RegisterForm() {
-  useAuthRedirect();
   const [step, setStep] = useState<"register" | "confirm">("register");
   const [formData, setFormData] = useState({
     name: "",

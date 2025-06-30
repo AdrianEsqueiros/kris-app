@@ -3,8 +3,10 @@ import { PacienteService } from "@/app/services/paciente.service";
 import { RegistrarPacienteRequest } from "@/app/types";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
 
 const RegistrarPaciente: React.FC = () => {
+  useAuthRedirect();
   const router = useRouter();
   const [juntos, setJuntos] = useState(false);
   const [sis, setSis] = useState(false);
@@ -48,11 +50,13 @@ const RegistrarPaciente: React.FC = () => {
 
   const validate = () => {
     const newErrors: typeof errors = {};
-    if (form.peso < 2 || form.peso > 250) {
-      newErrors.peso = "El peso debe estar entre 2 y 200 kg.";
-    }
-    if (form.talla < 30 || form.talla > 250) {
-      newErrors.talla = "La talla debe estar entre 30 y 250 cm.";
+    if (form.peso && form.talla) {
+      if (form.peso < 2 || form.peso > 250) {
+        newErrors.peso = "El peso debe estar entre 2 y 200 kg.";
+      }
+      if (form.talla < 30 || form.talla > 250) {
+        newErrors.talla = "La talla debe estar entre 30 y 250 cm.";
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -66,7 +70,8 @@ const RegistrarPaciente: React.FC = () => {
       const payload = {
         ...form,
         EdadMeses: Math.floor(
-          (new Date().getTime() - new Date(form.fecha_nacimiento).getTime()) /
+          (new Date().getTime() -
+            new Date(form?.fecha_nacimiento ?? "").getTime()) /
             (1000 * 60 * 60 * 24 * 30)
         ),
         Suppl_x_EdadGrupo: Number(form.Suplementacion) + "_" + form.Grupo_Edad,
@@ -204,7 +209,6 @@ const RegistrarPaciente: React.FC = () => {
             type="date"
             value={form.fecha_nacimiento}
             onChange={handleChange}
-            required
             className="form-control"
           />
         </div>

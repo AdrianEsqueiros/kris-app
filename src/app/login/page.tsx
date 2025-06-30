@@ -1,35 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      localStorage.removeItem("token");
+      window.location.href = `/login`; // si necesitas reiniciar el login
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const res = await fetch("/api/login", {
+      method: "POST",
+      body: JSON.stringify({ username: email, password }),
+      headers: { "Content-Type": "application/json" },
+    });
 
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email_user: email, pass_user: password }),
-      });
+    if (res.ok) {
+      const data = await res.json();
+      console.log("Login OK", data.token);
 
-      if (!response.ok) throw new Error("Error en login");
-
-      // Redireccionar al dashboard o página protegida
-      router.push("/dashboard");
-    } catch (error) {
-      console.log(error);
-      alert("Credenciales incorrectas");
+      if (data) {
+        localStorage.setItem("token", data.token);
+        window.location.href = `/paciente/listar`;
+      }
+    } else {
+      const err = await res.json();
+      alert("Error al iniciar sesión: " + err.message);
     }
   };
 
   return (
-    <div className="container mx-auto min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className=" h-screen flex items-center justify-center bg-gray-100 ">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
         <div className="flex justify-center mb-6">
           <h2 className="m-0 mb-10 text-2xl font-bold tracking-tight">
@@ -37,6 +46,7 @@ export default function LoginPage() {
             <span className="text-[#3B5BA9]">Core</span>
           </h2>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -88,7 +98,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-gray-600 mt-4">
           ¿No tienes cuenta?{" "}
-          <a href="/register-user" className="text-blue-600 hover:underline">
+          <a href="/register" className="text-blue-600 hover:underline">
             Crear cuenta
           </a>
         </p>

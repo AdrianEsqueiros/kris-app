@@ -5,10 +5,12 @@ import { PacienteService } from "@/app/services/paciente.service";
 import { RegistrarPacienteRequest } from "@/app/types";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default function InformacionPaciente() {
+  useAuthRedirect();
   const params = useParams();
   const id = params?.id as string;
   const [paciente, setPaciente] = useState<RegistrarPacienteRequest>({
@@ -71,7 +73,6 @@ export default function InformacionPaciente() {
     }
     if (id) fetchPaciente();
   }, [id]);
-  console.log("Paciente:", paciente);
   if (loading) return <div>Cargando...</div>;
   if (!paciente) return <div>No se encontró el paciente.</div>;
 
@@ -124,7 +125,11 @@ export default function InformacionPaciente() {
           <div className="mb-3">
             <label className="form-label">FECHA DE NACIMIENTO</label>
             <input
-              value={new Date(paciente?.fecha_nacimiento).toLocaleDateString()}
+              value={
+                paciente?.fecha_nacimiento
+                  ? new Date(paciente?.fecha_nacimiento).toLocaleDateString()
+                  : ""
+              }
               disabled
               className="form-control"
             />

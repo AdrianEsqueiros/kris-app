@@ -1,6 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { PacienteService } from "../../services/paciente.service";
+import SkeletonPacientes from "./components/skeletons/SkeletonPacientes";
+import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
 
 interface Paciente {
   id?: number;
@@ -11,21 +13,24 @@ interface Paciente {
 }
 
 export default function ListaPacientes() {
+  useAuthRedirect();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [pagina, setPagina] = useState(1);
   const [totalRegistros, setTotalRegistros] = useState(0);
   const [tamano] = useState(10);
   const [filtro, setFiltro] = useState("");
-
-  useEffect(() => {
-    const fetchPacientes = async () => {
+  const [loading, setLoading] = useState(true);
+  const totalPaginas = Math.ceil(totalRegistros / tamano);
+  const fetchPacientes = useCallback(async () => {
+    setLoading(true);
+    try {
       const res = await PacienteService.listarPacientes({
         filtro,
         pagina,
         tamano,
       });
-      const dataConId = res.data.map((p: Paciente, idx: number) => ({
-        id: (pagina - 1) * tamano + idx + 1,
+      const dataConId = res.data.map((p: Paciente) => ({
+        id: p.id,
         nombre: p.nombre,
         apellido: p.apellido,
         sexo: p.sexo,
@@ -33,12 +38,31 @@ export default function ListaPacientes() {
       }));
       setPacientes(dataConId);
       setTotalRegistros(res.total_registros);
-    };
+    } finally {
+      setLoading(false);
+    }
+  }, [filtro, pagina, tamano]);
+  useEffect(() => {
     fetchPacientes();
-  }, [pagina, tamano, filtro]);
+  }, [fetchPacientes]);
 
-  const totalPaginas = Math.ceil(totalRegistros / tamano);
+  if (loading) return <SkeletonPacientes />;
 
+  const handleSubmit = async (id: undefined | number) => {
+    try {
+      const payload = {
+        id,
+        nombre: "DELETE",
+      };
+      console.log("Payload to register patient:", id);
+      // Registrar paciente
+      await PacienteService.registrarPaciente(payload);
+      await fetchPacientes();
+    } catch (error) {
+      alert("Error al registrar paciente");
+      console.error("Error al registrar paciente:", error);
+    }
+  };
   return (
     <div
       className="bg-white rounded-md shadow-sm p-4 mt-5 mx-auto"
@@ -100,7 +124,10 @@ export default function ListaPacientes() {
                   >
                     <i className="bi bi-pencil"></i> Actualizar
                   </button>
-                  <button className="btn btn-danger btn-sm">
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => handleSubmit(p.id)}
+                  >
                     <i className="bi bi-trash"></i> Eliminar
                   </button>
                 </td>

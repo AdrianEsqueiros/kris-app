@@ -81,7 +81,7 @@ export default function ActualizarPaciente() {
     }
 
     if (id) fetchPaciente();
-  }, [id]);
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -99,7 +99,8 @@ export default function ActualizarPaciente() {
     setSaving(true);
     try {
       const EdadMeses = Math.floor(
-        (new Date().getTime() - new Date(form.fecha_nacimiento).getTime()) /
+        (new Date().getTime() -
+          new Date(form?.fecha_nacimiento ?? "").getTime()) /
           (1000 * 60 * 60 * 24 * 30)
       );
       const Indice_social =
@@ -219,7 +220,6 @@ export default function ActualizarPaciente() {
             value={form.fecha_nacimiento}
             onChange={handleChange}
             className="form-control"
-            required
           />
         </div>
         <div className="col-md-4">

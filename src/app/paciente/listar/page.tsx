@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PacienteService } from "../../services/paciente.service";
 import SkeletonPacientes from "./components/skeletons/SkeletonPacientes";
+import ConfirmDeleteToast from "./components/ConfirmDeleteToast";
 import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
 
 interface Paciente {
@@ -13,6 +14,33 @@ interface Paciente {
 }
 
 export default function ListaPacientes() {
+  const handleDownloadReporte = async () => {
+  try {
+    const response = await fetch('https://4wsvlgf788.execute-api.us-east-1.amazonaws.com/dev/query', {
+      method: 'GET',
+    });
+    if (!response.ok) throw new Error('No se pudo descargar el reporte');
+    const data = await response.text(); // Recibe como texto base64
+    // Decodifica base64 a binario
+    const byteCharacters = atob(data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'reporte_de_pacientes.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Error al descargar el reporte');
+  }
+};
   useAuthRedirect();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [pagina, setPagina] = useState(1);
@@ -20,6 +48,9 @@ export default function ListaPacientes() {
   const [tamano] = useState(10);
   const [filtro, setFiltro] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | undefined>(undefined);
+  const [deleteName, setDeleteName] = useState<string>("");
   const totalPaginas = Math.ceil(totalRegistros / tamano);
   const fetchPacientes = useCallback(async () => {
     setLoading(true);
@@ -48,20 +79,35 @@ export default function ListaPacientes() {
 
   if (loading) return <SkeletonPacientes />;
 
-  const handleSubmit = async (id: undefined | number) => {
+  const handleDelete = (id: number | undefined) => {
+    setDeleteId(id);
+    const paciente = pacientes.find(p => p.id === id);
+    setDeleteName(paciente ? `${paciente.nombre} ${paciente.apellido}` : "");
+    setShowConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setShowConfirm(false);
+    if (!deleteId) return;
     try {
       const payload = {
-        id,
+        id: deleteId,
         nombre: "DELETE",
       };
-      console.log("Payload to register patient:", id);
-      // Registrar paciente
       await PacienteService.registrarPaciente(payload);
       await fetchPacientes();
     } catch (error) {
       alert("Error al registrar paciente");
       console.error("Error al registrar paciente:", error);
     }
+    setDeleteId(undefined);
+    setDeleteName("");
+  };
+
+  const cancelDelete = () => {
+    setShowConfirm(false);
+    setDeleteId(undefined);
+    setDeleteName("");
   };
   return (
     <div
@@ -74,7 +120,10 @@ export default function ListaPacientes() {
       >
         LISTA DE PACIENTES
       </h2>
-      <div className="d-flex justify-content-end mb-3">
+      <div className="d-flex justify-content-between mb-3">
+        <button className="btn btn-primary" onClick={handleDownloadReporte}>
+          Descargar Reporte
+        </button>
         <input
           type="text"
           placeholder="Buscar paciente..."
@@ -126,7 +175,7 @@ export default function ListaPacientes() {
                   </button>
                   <button
                     className="btn btn-danger btn-sm"
-                    onClick={() => handleSubmit(p.id)}
+                    onClick={() => handleDelete(p.id)}
                   >
                     <i className="bi bi-trash"></i> Eliminar
                   </button>
@@ -156,6 +205,14 @@ export default function ListaPacientes() {
           Siguiente
         </button>
       </div>
+      {showConfirm && (
+        <ConfirmDeleteToast
+          message="¿Está seguro que desea eliminar al paciente?"
+          patientName={deleteName}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+        />
+      )}
     </div>
   );
 }

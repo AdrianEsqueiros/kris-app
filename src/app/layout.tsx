@@ -29,9 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="d-flex">
+        <div className="d-flex" style={{height: '100vh'}}>
           <Sidebar />
-          <div className="flex-grow-1 p-4 bg-gray-100">{children}</div>
+          <div className="flex-grow-1 bg-gray-100" style={{height: '100vh'}}>{children}</div>
         </div>
       </body>
       <link

@@ -22,8 +22,12 @@ const RecoveryPasswordPage = () => {
       await forgotPasswordAws(email);
       setStep('code');
       setSuccess('Se ha enviado un código a tu correo electrónico.');
-    } catch (err: any) {
-      setError(err.message || 'Error al enviar el código.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Error al enviar el código.');
+      } else {
+        setError('Error al enviar el código.');
+      }
     } finally {
       setLoading(false);
     }
@@ -41,8 +45,12 @@ const RecoveryPasswordPage = () => {
       setTimeout(() => {
         router.push('/login');
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Error al restablecer la contraseña.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Error al restablecer la contraseña.');
+      } else {
+        setError('Error al restablecer la contraseña.');
+      }
     } finally {
       setLoading(false);
     }

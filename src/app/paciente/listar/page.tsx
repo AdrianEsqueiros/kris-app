@@ -38,6 +38,7 @@ export default function ListaPacientes() {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
+    console.log(err)
     alert('Error al descargar el reporte');
   }
 };

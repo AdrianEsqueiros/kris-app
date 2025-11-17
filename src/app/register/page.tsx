@@ -4,23 +4,42 @@ import PasswordInput from "./components/passwordInput";
 
 export default function RegisterForm() {
   const [step, setStep] = useState<"register" | "confirm">("register");
-  const [loading, setLoading] = useState(false); // Spinner 👈
+  const [loading, setLoading] = useState(false);
+  const [touchedConfirm, setTouchedConfirm] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
     email: "",
     password: "",
+    confirmPassword: "",
     code: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    setFormData((prev) => {
+      if (name === "password") {
+        return { ...prev, password: value };
+      }
+      if (name === "confirmPassword") {
+        if (!touchedConfirm) setTouchedConfirm(true);
+        return { ...prev, confirmPassword: value };
+      }
+      return { ...prev, [name]: value };
+    });
   };
+
+
+  const passwordValid = formData.password.length >= 8;
+  const passwordMatch =
+    formData.confirmPassword.length > 0 &&
+    formData.password === formData.confirmPassword;
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); // ⏳ Inicia spinner
-
+    if (!passwordMatch) return;
+    setLoading(true);
     const res = await fetch("/api/signup", {
       method: "POST",
       body: JSON.stringify({
@@ -30,23 +49,19 @@ export default function RegisterForm() {
       }),
       headers: { "Content-Type": "application/json" },
     });
-
     const data = await res.json();
-
     if (res.ok) {
       alert("Se envió un código de confirmación al correo");
       setStep("confirm");
     } else {
       alert("Error: " + data.message);
     }
-
-    setLoading(false); // ✅ Finaliza spinner
+    setLoading(false);
   };
 
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); // ⏳ Inicia spinner
-
+    setLoading(true);
     const res = await fetch("/api/confirm", {
       method: "POST",
       body: JSON.stringify({
@@ -55,9 +70,7 @@ export default function RegisterForm() {
       }),
       headers: { "Content-Type": "application/json" },
     });
-
     const data = await res.json();
-
     if (res.ok) {
       const dbRes = await fetch("/api/register-db", {
         method: "POST",
@@ -69,23 +82,17 @@ export default function RegisterForm() {
           apellido: formData.surname,
         }),
       });
-
       const dbData = await dbRes.json();
-
       if (dbRes.ok) {
         alert("Cuenta confirmada y registrada correctamente.");
         window.location.href = "/login";
       } else {
-        alert(
-          "Confirmado, pero error al registrar en la base de datos: " +
-            dbData.message
-        );
+        alert("Confirmado, pero error al registrar en BD: " + dbData.message);
       }
     } else {
       alert("Error: " + data.message);
     }
-
-    setLoading(false); // ✅ Finaliza spinner
+    setLoading(false);
   };
 
   return (
@@ -116,7 +123,6 @@ export default function RegisterForm() {
                   autoFocus
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Apellido
@@ -148,15 +154,49 @@ export default function RegisterForm() {
               />
             </div>
 
-            <PasswordInput value={formData.password} onChange={handleChange} />
+            <PasswordInput
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              label="Contraseña"
+            />
+
+            {!passwordValid && formData.password.length > 0 && (
+              <p className="text-xs text-orange-600">
+                Mínimo 8 caracteres.
+              </p>
+            )}
+
+             <PasswordInput
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              label="Confirmar contraseña"
+            />
+
+            {touchedConfirm &&
+              formData.confirmPassword &&
+              !passwordMatch && passwordValid && (
+                <p className="text-xs text-red-600">
+                  Las contraseñas no coinciden.
+                </p>
+              )}
+
+            {passwordMatch && (
+              <p className="text-xs text-green-600">
+                Las contraseñas coinciden.
+              </p>
+            )}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !passwordMatch}
               className={`w-full text-white py-2 px-4 rounded flex items-center justify-center gap-2 ${
                 loading
                   ? "bg-blue-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  : passwordMatch
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-blue-300 cursor-not-allowed"
               }`}
             >
               {loading ? (
@@ -166,8 +206,7 @@ export default function RegisterForm() {
                 </>
               ) : (
                 <>
-                  Crear cuenta
-                  <i className="bi bi-arrow-right-circle" />
+                  Crear cuenta <i className="bi bi-arrow-right-circle" />
                 </>
               )}
             </button>
@@ -189,7 +228,6 @@ export default function RegisterForm() {
                 autoFocus
               />
             </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -206,8 +244,7 @@ export default function RegisterForm() {
                 </>
               ) : (
                 <>
-                  Confirmar cuenta
-                  <i className="bi bi-check-circle" />
+                  Confirmar cuenta <i className="bi bi-check-circle" />
                 </>
               )}
             </button>

@@ -5,6 +5,26 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthRedirect } from "@/app/hooks/useAuthRedirect";
 
+// Helpers para edad y grupo
+const calcularEdadMeses = (fecha: string) => {
+  if (!fecha) return 0;
+  const nacimiento = new Date(fecha);
+  const hoy = new Date();
+  let meses =
+    (hoy.getFullYear() - nacimiento.getFullYear()) * 12 +
+    (hoy.getMonth() - nacimiento.getMonth());
+  if (hoy.getDate() < nacimiento.getDate()) meses -= 1;
+  return meses < 0 ? 0 : meses;
+};
+
+const obtenerGrupoEdad = (meses: number) => {
+  if (meses >= 0 && meses < 6) return "0-5m";
+  if (meses >= 6 && meses < 24) return "6-24m";
+  if (meses >= 24 && meses <= 59) return "24-59m";
+  if (meses >= 60) return "≥60m";
+  return "";
+};
+
 const RegistrarPaciente: React.FC = () => {
   useAuthRedirect();
   const router = useRouter();
@@ -42,9 +62,34 @@ const RegistrarPaciente: React.FC = () => {
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = (e.target as HTMLInputElement).checked;
+
+    // Fecha de nacimiento: calcula edad y grupo automáticamente
+    if (name === "fecha_nacimiento") {
+      const edadMeses = calcularEdadMeses(value);
+      const grupo = obtenerGrupoEdad(edadMeses);
+      setForm((prev) => ({
+        ...prev,
+        fecha_nacimiento: value,
+        EdadMeses: edadMeses,
+        Grupo_Edad: grupo,
+      }));
+      return;
+    }
+
+    // Actualizar suplementación y mantener Suppl_x_EdadGrupo consistente si quieres
+    if (name === "Suplementacion") {
+      const val = type === "checkbox" ? (checked ? 1 : 0) : Number(value);
+      setForm((prev) => ({
+        ...prev,
+        Suplementacion: val,
+        Suppl_x_EdadGrupo: `${val}_${prev.Grupo_Edad}`,
+      }));
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? (checked ? 1 : 0) : value,
     }));
   };
 
@@ -212,6 +257,19 @@ const RegistrarPaciente: React.FC = () => {
             className="form-control"
           />
         </div>
+        <div className="col-md-4">
+          <label className="form-label fw-semibold">Edad (meses)</label>
+          <input
+            name="EdadMeses"
+            type="number"
+            value={form.EdadMeses}
+            disabled
+            className="form-control"
+          />
+          <small className="text-muted">
+            Se calcula automáticamente desde la fecha de nacimiento.
+          </small>
+        </div>
       </div>
       <div className="row mb-3">
         <div className="col-md-4 mb-3 mb-md-0">
@@ -296,15 +354,19 @@ const RegistrarPaciente: React.FC = () => {
           <select
             name="Grupo_Edad"
             value={form.Grupo_Edad}
-            onChange={handleChange}
+            onChange={() => {}}
             className="form-select"
-            required
+            disabled
           >
-            <option value="">Seleccione</option>
-            <option value="24-59m">24-59m</option>
+            <option value="">{form.Grupo_Edad || "Sin calcular"}</option>
+            <option value="0-5m">0-5m</option>
             <option value="6-24m">6-24m</option>
+            <option value="24-59m">24-59m</option>
             <option value="≥60m">≥60m</option>
           </select>
+          <small className="text-muted">
+            Se determina según fecha de nacimiento.
+          </small>
         </div>
       </div>
       <div className="row mb-3">

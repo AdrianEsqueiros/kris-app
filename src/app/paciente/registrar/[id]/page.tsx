@@ -36,6 +36,31 @@ export default function ActualizarPaciente() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Helpers para edad y grupo (auto)
+  function calcularEdadMeses(fecha: string | undefined): number {
+    if (!fecha) return 0; // o lanzar error
+    const d = new Date(fecha);
+    if (isNaN(d.getTime())) return 0;
+    const now = new Date();
+    return (
+      (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth())
+    );
+  }
+
+  const obtenerGrupoEdad = (meses: number) => {
+    if (meses >= 0 && meses < 6) return "0-5m";
+    if (meses >= 6 && meses < 24) return "6-24m";
+    if (meses >= 24 && meses <= 59) return "24-59m";
+    if (meses >= 60) return "≥60m";
+    return "";
+  };
+
+  // Añade helper arriba (después de otros helpers)
+  const normalizarFechaEntrada = (f: string) =>
+    !f ? "" : f.includes("T") ? f.split("T")[0] : f;
+  const prepararFechaSalida = (f?: string) =>
+    f ? (f.length === 10 ? `${f}T00:00:00` : f) : "";
+
   useEffect(() => {
     async function fetchPaciente() {
       setLoading(true);
@@ -47,26 +72,31 @@ export default function ActualizarPaciente() {
         });
         const paciente = res?.data?.[0];
         if (paciente) {
-          setForm({
-            ...form,
+          // Reemplaza setForm({ ... }) por:
+          const fechaRaw = paciente.fecha_nacimiento || "";
+          const fechaInput = normalizarFechaEntrada(fechaRaw);
+          const edadMeses = calcularEdadMeses(fechaInput);
+          const grupo = obtenerGrupoEdad(edadMeses);
+          setForm((prev) => ({
+            ...prev,
             id: paciente.id || undefined,
             nombre: paciente.nombre || "",
             apellido: paciente.apellido || "",
             peso: paciente.peso || 0,
             talla: paciente.talla || 0,
-            fecha_nacimiento: paciente.fecha_nacimiento || "",
+            fecha_nacimiento: fechaInput,
             AlturaREN: paciente.AlturaREN || 0,
             Sexo: Number(paciente.Sexo) || 0,
             Suplementacion: paciente.Suplementacion ? 1 : 0,
             Cred: paciente.Cred ? 1 : 0,
             Tipo_EESS: paciente.Tipo_EESS || "",
             Red_simple: paciente.Red_simple || "",
-            Grupo_Edad: paciente.Grupo_Edad || "",
-            EdadMeses: paciente.EdadMeses || 0,
-            Suppl_x_EdadGrupo: paciente.Suppl_x_EdadGrupo || "",
+            Grupo_Edad: grupo,
+            EdadMeses: edadMeses,
+            Suppl_x_EdadGrupo: `${paciente.Suplementacion ? 1 : 0}_${grupo}`,
             Sexo_x_Juntos: paciente.Sexo_x_Juntos || "",
             Indice_social: paciente.Indice_social || 0,
-          });
+          }));
 
           // Establecer valores booleanos locales según Indice_social
           const index = paciente.Indice_social || 0;
@@ -89,6 +119,32 @@ export default function ActualizarPaciente() {
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = (e.target as HTMLInputElement).checked;
+
+    if (name === "fecha_nacimiento") {
+      // Ajustar cálculo usando normalizar:
+      const fechaInput = normalizarFechaEntrada(value);
+      const edadMeses = calcularEdadMeses(fechaInput);
+      const grupo = obtenerGrupoEdad(edadMeses);
+      setForm((prev) => ({
+        ...prev,
+        fecha_nacimiento: fechaInput,
+        EdadMeses: edadMeses,
+        Grupo_Edad: grupo,
+        Suppl_x_EdadGrupo: `${prev.Suplementacion}_${grupo}`,
+      }));
+      return;
+    }
+
+    if (name === "Suplementacion") {
+      const val = type === "checkbox" ? (checked ? 1 : 0) : Number(value);
+      setForm((prev) => ({
+        ...prev,
+        Suplementacion: val,
+        Suppl_x_EdadGrupo: `${val}_${prev.Grupo_Edad}`,
+      }));
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? (checked ? 1 : 0) : value,
@@ -99,23 +155,25 @@ export default function ActualizarPaciente() {
     e.preventDefault();
     setSaving(true);
     try {
-      const EdadMeses = Math.floor(
-        (new Date().getTime() -
-          new Date(form?.fecha_nacimiento ?? "").getTime()) /
-          (1000 * 60 * 60 * 24 * 30)
-      );
+      const EdadMeses = calcularEdadMeses(form.fecha_nacimiento);
+      const Grupo_Edad = obtenerGrupoEdad(EdadMeses);
       const Indice_social =
         (juntos ? 1 : 0) + (sis ? 1 : 0) + (qaliwarma ? 1 : 0);
       const Sexo = Number(form.Sexo) === 1 ? 1 : 0;
 
+      // Añade antes de construir payload:
+      const fechaSalida = prepararFechaSalida(form.fecha_nacimiento);
+
       const payload: RegistrarPacienteRequest = {
         ...form,
+        fecha_nacimiento: fechaSalida,
         EdadMeses,
+        Grupo_Edad,
         Indice_social,
         Sexo,
         Cred: form.Cred ? 1 : 0,
         Suplementacion: form.Suplementacion ? 1 : 0,
-        Suppl_x_EdadGrupo: `${form.Suplementacion}_${form.Grupo_Edad}`,
+        Suppl_x_EdadGrupo: `${form.Suplementacion ? 1 : 0}_${Grupo_Edad}`,
         Sexo_x_Juntos: `${Sexo}_${Indice_social}`,
       };
 
@@ -224,6 +282,19 @@ export default function ActualizarPaciente() {
           />
         </div>
         <div className="col-md-4">
+          <label className="form-label fw-semibold">Edad (meses)</label>
+            <input
+              name="EdadMeses"
+              type="number"
+              value={form.EdadMeses}
+              disabled
+              className="form-control"
+            />
+            <small className="text-muted">
+              Calculado automáticamente.
+            </small>
+        </div>
+        <div className="col-md-4">
           <label className="form-label fw-semibold">Altura REN</label>
           <input
             name="AlturaREN"
@@ -234,6 +305,8 @@ export default function ActualizarPaciente() {
             min={0}
           />
         </div>
+      </div>
+      <div className="row mb-3">
         <div className="col-md-4 d-flex align-items-center">
           <input
             className="form-check-input me-2"
@@ -293,19 +366,21 @@ export default function ActualizarPaciente() {
 
       <div className="row mb-3">
         <div className="col-md-4">
-          <label className="form-label fw-semibold">Grupo Edad</label>
+          <label className="form-label fw-semibold">Grupo Edad (auto)</label>
           <select
             name="Grupo_Edad"
             value={form.Grupo_Edad}
-            onChange={handleChange}
+            onChange={() => {}}
             className="form-select"
-            required
+            disabled
           >
-            <option value="">Seleccione</option>
-            <option value="24-59m">24-59m</option>
+            <option value="">{form.Grupo_Edad || "Sin calcular"}</option>
+            <option value="0-5m">0-5m</option>
             <option value="6-24m">6-24m</option>
+            <option value="24-59m">24-59m</option>
             <option value="≥60m">≥60m</option>
           </select>
+          <small className="text-muted">Derivado de la fecha de nacimiento.</small>
         </div>
       </div>
 

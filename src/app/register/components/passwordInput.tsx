@@ -3,24 +3,28 @@ import { useState } from "react";
 export default function PasswordInput({
   value,
   onChange,
+  label,
+  name
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  label: string;
+  name: string;
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">Clave</label>
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
       <div className="relative mt-1">
         <input
           type={showPassword ? "text" : "password"}
-          name="password"
+          name={name}
           value={value}
           onChange={onChange}
           required
           className="block w-full border border-gray-300 rounded-md p-2 pr-10"
-          placeholder=""
+          placeholder="*********"
         />
         <button
           type="button"

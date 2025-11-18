@@ -9,9 +9,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false); // 👉 estado para spinner
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     if (token) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
       window.location.href = `/login`;
     }
   }, []);
@@ -28,7 +28,8 @@ export default function LoginPage() {
     if (res.ok) {
       const data = await res.json();
       if (data) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("accessToken", data.idToken);
+        localStorage.setItem("token", data.accessToken);
         window.location.href = `/paciente/listar`;
       }
     } else {

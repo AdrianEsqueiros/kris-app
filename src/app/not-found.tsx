@@ -7,7 +7,7 @@ export default function NotFound() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     if (!token) {
       router.push("/login"); // redirige si no hay token
     } else {

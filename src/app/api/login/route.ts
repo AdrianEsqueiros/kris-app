@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
   try {
     const response = await client.send(command);
     const idToken = response.AuthenticationResult?.IdToken;
-
-    return NextResponse.json({ token: idToken }, { status: 200 });
+    const accessToken = response.AuthenticationResult?.AccessToken;
+    return NextResponse.json({ idToken, accessToken }, { status: 200 });
   } catch (err) {
     if (err instanceof Error)
       return NextResponse.json({ message: err.message }, { status: 401 });

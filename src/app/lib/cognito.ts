@@ -87,3 +87,29 @@ export const confirmForgotPassword = async (
     }, { SecretHash: secretHash });
   });
 };
+
+// Cambiar contraseña (usuario autenticado)
+export const changePassword = async (
+  username: string,
+  oldPassword: string,
+  newPassword: string
+) => {
+   const user = new CognitoUser({
+    Username: username,
+    Pool: userPool,
+  });
+  const secretHash = generateSecretHash(
+    username,
+    poolData.ClientId,
+    poolData.ClientSecret
+  );
+  return new Promise((resolve, reject) => {
+    user.changePassword(oldPassword, newPassword, (err, result) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(result);
+    }, { SecretHash: secretHash });
+  });
+};

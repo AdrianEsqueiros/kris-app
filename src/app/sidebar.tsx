@@ -43,7 +43,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const storedToken = localStorage.getItem("accessToken");
     setToken(storedToken);
   }, []);
 

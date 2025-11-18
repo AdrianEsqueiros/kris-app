@@ -30,7 +30,7 @@ export default function Perfil() {
   useEffect(() => {
     async function loadUser() {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("accessToken");
           let emailFromToken = "";
           if (token) {
             try {
@@ -80,7 +80,7 @@ export default function Perfil() {
       const res = await fetch("/api/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken, currentPassword, newPassword }),
+        body: JSON.stringify({ accessToken,previousPassword: currentPassword, proposedPassword: newPassword }),
       });
       const data = await res.json();
       if (res.ok) {
